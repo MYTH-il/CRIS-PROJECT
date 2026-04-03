@@ -86,5 +86,55 @@ def generate_temporal_forecast(df, crime_filter=None):
         labels={'value': 'Number of Incidents', 'YearMonth': 'Date', 'variable': 'Metric'}
     )
     
+    
     fig.update_layout(hovermode="x unified")
+    return fig
+
+def generate_crime_distribution_chart(df, crime_filter=None):
+    """
+    Shows a Pie chart of Crime Types OR a Bar chart of Top Locations if a crime is selected.
+    """
+    if 'crime_type' not in df.columns:
+        return None
+        
+    plot_df = df.copy()
+    if crime_filter and crime_filter != "All Crimes":
+        # If they filtered a specific crime, show top 10 locations for that crime
+        if 'incident_location' not in plot_df.columns:
+            return None
+        plot_df = plot_df[plot_df['crime_type'] == crime_filter]
+        counts = plot_df['incident_location'].value_counts().reset_index().head(10)
+        counts.columns = ['Location', 'Incident Count']
+        fig = px.bar(counts, x='Incident Count', y='Location', orientation='h', 
+                     title=f"Top 10 Locations for {crime_filter}", 
+                     color='Incident Count', color_continuous_scale='Blues')
+        fig.update_layout(yaxis={'categoryorder':'total ascending'})
+        return fig
+    else:
+        # Show all crime distributions
+        counts = plot_df['crime_type'].value_counts().reset_index().head(10)
+        counts.columns = ['Crime Type', 'Incident Count']
+        fig = px.pie(counts, values='Incident Count', names='Crime Type', 
+                     title="Distribution of Top 10 Crimes", hole=0.4, 
+                     color_discrete_sequence=px.colors.sequential.RdBu)
+        return fig
+
+def generate_time_distribution_chart(df, crime_filter=None):
+    """
+    Shows a Bar Chart indicating what Time of Day crimes happen most.
+    """
+    if 'time_of_day' not in df.columns:
+        return None
+        
+    plot_df = df.copy()
+    if crime_filter and crime_filter != "All Crimes":
+        plot_df = plot_df[plot_df['crime_type'] == crime_filter]
+        
+    counts = plot_df['time_of_day'].value_counts().reset_index()
+    counts.columns = ['Time of Day', 'Incident Count']
+    fig = px.bar(counts, x='Time of Day', y='Incident Count', 
+                 title=f"Incident Frequencies by Time ({crime_filter if crime_filter else 'All Crimes'})", 
+                 color='Incident Count', color_continuous_scale='Purples')
+    
+    # Optional: order categories logically if they are standard shifts (Morning, Afternoon, etc.)
     return fig
