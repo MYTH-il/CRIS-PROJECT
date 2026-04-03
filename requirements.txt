@@ -1,0 +1,40 @@
+# Data Manipulation
+pandas
+numpy
+polars
+
+# Visualization
+matplotlib
+seaborn
+plotly
+wordcloud
+missingno
+
+# Statistical Analysis
+scipy
+statsmodels
+
+# NLP Libraries
+nltk
+spacy
+textstat
+langdetect
+
+# Geospatial
+geopandas
+folium
+shapely
+
+# Utilities
+tqdm
+python-dotenv
+pyyaml
+
+# Jupyter
+jupyter
+ipywidgets
+
+# Web Application & NLP
+streamlit
+scikit-learn
+transformers
