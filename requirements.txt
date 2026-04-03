@@ -38,3 +38,4 @@ ipywidgets
 streamlit
 scikit-learn
 transformers
+networkx

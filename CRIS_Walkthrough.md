@@ -48,3 +48,37 @@ We have officially built the scientific baseline intelligence engine for the pro
 2. Navigate to the new 4th tab: **Intelligence Demo**.
 3. Open the `Train Baseline Model` expander and click **Start Training**. Watch as your 60k rows are converted into a mathematical matrix.
 4. Once training completes, paste any fake incident report into the text box and hit **Analyze with CRIS** to see your ML model spit out predictions and colored entities!
+
+## Phase 3: Advanced Analytics & Hotspot Mapping (Completed: 2026-04-03)
+
+We have transformed the basic data viewer into a full geospatial and temporal intelligence dashboard, capable of finding crime hotspots and charting moving-average trends over time.
+
+### Changes Made
+- **Analytics Engine**: Created `src/analytics.py`. 
+  - We built `generate_hotspot_map` which utilizes Plotly Mapbox to render thousands of latitude/longitude points directly onto a street-map, creating visual density clusters.
+  - We built `generate_temporal_forecast` which ingests `report_date`, groups crimes by month, and calculates a 3-month Moving Average Trendline to forecast expected crime volumes.
+- **Streamlit Integration**: We modified `app.py`, completely overhauling the old "Basic Distributions" tab into the **Advanced Analytics & Hotspots** tab.
+- **Interactive UI**: Added a master drop-down filter inside the Analytics tab. When you select a specific `crime_type`, both the Map and the Time-Series chart simultaneously re-render in real-time to only show data for that specific crime!
+
+### Validation / Testing
+1. Ensure your Streamlit app is running and refresh the page.
+2. Click on the 3rd tab: **Advanced Analytics & Hotspots**.
+3. You will instantly see your 60k incident dataset scattered dynamically across an interactive map, paired with a Time-Series trend graph on the left.
+4. Try using the dropdown at the top of the tab to filter by a specific crime type!
+
+## Phase 4: Advanced Palantir-Style Intelligence Integrations (Completed: 2026-04-03)
+
+We completely upgraded the core CRIS Engine to include massive, highly profitable real-world analytical modules.
+
+### Changes Made
+- **Created `src/advanced_intel.py`**:
+  - **Severity & Distress Triage**: We used `nltk.sentiment.vader` combined with keyword heuristics to generate a 1-10 "Severity Score" (Code Red, Elevated, Standard). This analyzes the desperation and panic in an incident report to triage police dispatches. VADER was chosen because it is incredibly fast, bypasses WDAC DLL security blocks, and specializes in detecting intense negative sentiment (like panic/fear) far better than standard text classifiers.
+  - **Syndicate Knowledge Graphs**: Implemented mathematically positioned visual spider-webs entirely in Python using `networkx` and `plotly`. It automatically draws lines between suspects, locations, and organizations extracted by the NER pipeline.
+  - **Modus Operandi (M.O.) Matching**: Leveraged `scikit-learn`'s `cosine_similarity` to mathematically calculate the "angle" between the new incident vector and the 60,000 historical vectors, finding unsolved cold cases with identical patterns in milliseconds.
+- **Streamlit Integration**: We upgraded the 4th tab (Intelligence Demo). When you "Analyze with CRIS", the dashboard now splits into multiple UI sectors, rendering the Knowledge Graph, the Severity Meter, and fetching the Top 3 M.O. Matches simultaneously.
+
+### Validation / Testing
+1. Refresh your Streamlit app in your browser.
+2. Go to the 4th tab (**Intelligence Demo**).
+3. Paste an incident report (try one involving weapons and panic so you can trigger a **CODE RED 10/10** severity score!).
+4. Hit **Analyze** and watch the bottom of the screen generate the spider-web graph and find matching crimes!

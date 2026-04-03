@@ -1,0 +1,14 @@
+Example 1: Active Threat (Testing the "CODE RED" Severity Triage)
+This text contains high negative sentiment, panic markers, and red-flag keywords designed to trigger our VADER engine and force a maximum 10/10 severity score.
+
+"HELP!! Active shooter reported at the Westfield Shopping Center! Suspect is heavily armed with an assault rifle and is shooting indiscriminately near the food court. Multiple victims are bleeding and hostages are trapped. We need immediate medical backup, people are dying! Suspect is wearing tactical gear and has a knife strapped to his leg. Absolute panic everywhere, send SWAT now!!!"
+
+Example 2: Financial Syndicate (Testing the "Spider-Web" Knowledge Graph)
+This text is packed with multiple Suspects, Victims, Locations, and Organizations designed to generate a very complex mathematical network graph.
+
+"On Friday, the FBI coordinated a raid against a massive money-laundering syndicate operating out of Miami. Suspect Carlos Mendoza and his associate, Julia Vance, allegedly embezzled $4,000,000 from Wells Fargo using phantom accounts. The stolen funds were funneled through shell corporations in Panama before being withdrawn at a Chase Bank branch in Downtown Los Angeles. Both Mendoza and Vance are scheduled for arraignment at the Federal Courthouse."
+
+Example 3: Specific M.O. (Testing "Modus Operandi" Similarity Search)
+This text describes a very uniquely executed crime. The Cosine Similarity engine should scan your 60,000 rows and mathematically snap to other historic vehicle-part thefts.
+
+"At 3:15 AM, a resident on Elm Street reported a suspicious noise outside their window. Upon investigation, they discovered two individuals using a battery-powered reciprocating saw to cut off the catalytic converter from their parked 2008 Honda Accord. The suspects loaded the stolen exhaust parts into a black Chevy Silverado and sped off southbound toward the interstate. The total estimated damage to the vehicle's undercarriage is roughly $1,500."
