@@ -1,6 +1,8 @@
 import pandas as pd
 import plotly.express as px
 import numpy as np
+from statsmodels.tsa.arima.model import ARIMA
+from prophet import Prophet
 
 def generate_hotspot_map(df, crime_filter=None):
     """
@@ -89,6 +91,68 @@ def generate_temporal_forecast(df, crime_filter=None):
     
     fig.update_layout(hovermode="x unified")
     return fig
+
+def generate_temporal_forecast_baselines(df, crime_filter=None, horizon=6):
+    """
+    Generates ARIMA and Prophet baseline forecasts for monthly incident counts.
+    Returns two plotly figures (or None if data insufficient).
+    """
+    if 'report_date' not in df.columns:
+        return None, None
+
+    time_df = df.copy()
+    time_df['report_date'] = pd.to_datetime(time_df['report_date'], errors='coerce')
+    time_df = time_df.dropna(subset=['report_date'])
+
+    if crime_filter and crime_filter != "All Crimes":
+        if 'crime_type' in time_df.columns:
+            time_df = time_df[time_df['crime_type'] == crime_filter]
+
+    if len(time_df) == 0:
+        return None, None
+
+    time_df['YearMonth'] = time_df['report_date'].dt.to_period('M').dt.to_timestamp()
+    monthly_counts = time_df.groupby('YearMonth').size().reset_index(name='Incident Count')
+    monthly_counts = monthly_counts.sort_values('YearMonth')
+
+    if len(monthly_counts) < 12:
+        return None, None
+
+    # ARIMA baseline
+    arima_fig = None
+    try:
+        series = monthly_counts.set_index('YearMonth')['Incident Count']
+        model = ARIMA(series, order=(1, 1, 1))
+        fitted = model.fit()
+        forecast = fitted.forecast(steps=horizon)
+        forecast_df = forecast.reset_index()
+        forecast_df.columns = ['YearMonth', 'Forecast']
+        arima_fig = px.line(
+            pd.concat([monthly_counts.assign(Type="Actual"),
+                       forecast_df.rename(columns={"Forecast": "Incident Count"}).assign(Type="Forecast")]),
+            x='YearMonth', y='Incident Count', color='Type',
+            title=f"ARIMA Baseline Forecast ({crime_filter if crime_filter else 'All Crimes'})"
+        )
+    except Exception:
+        arima_fig = None
+
+    # Prophet baseline
+    prophet_fig = None
+    try:
+        prophet_df = monthly_counts.rename(columns={'YearMonth': 'ds', 'Incident Count': 'y'})
+        model = Prophet()
+        model.fit(prophet_df)
+        future = model.make_future_dataframe(periods=horizon, freq='MS')
+        forecast = model.predict(future)
+        prophet_fig = px.line(
+            forecast, x='ds', y='yhat',
+            title=f"Prophet Baseline Forecast ({crime_filter if crime_filter else 'All Crimes'})",
+            labels={'ds': 'Date', 'yhat': 'Forecast'}
+        )
+    except Exception:
+        prophet_fig = None
+
+    return arima_fig, prophet_fig
 
 def generate_crime_distribution_chart(df, crime_filter=None):
     """

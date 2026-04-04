@@ -13,22 +13,28 @@ missingno
 # Statistical Analysis
 scipy
 statsmodels
+prophet
 
 # NLP Libraries
 nltk
-spacy
 textstat
 langdetect
 
 # Geospatial
-geopandas
 folium
 shapely
+h3
 
 # Utilities
 tqdm
 python-dotenv
 pyyaml
+requests
+sqlalchemy
+python-jose
+passlib[bcrypt]
+chromadb
+lime
 
 # Jupyter
 jupyter
@@ -37,5 +43,6 @@ ipywidgets
 # Web Application & NLP
 streamlit
 scikit-learn
-transformers
 networkx
+fastapi
+uvicorn

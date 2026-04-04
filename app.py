@@ -2,12 +2,20 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import os
-from src.classification import train_baseline_model, predict_crime_type
+from src.classification import train_baseline_model, predict_crime_type, predict_zero_shot
 from src.ner_extraction import extract_entities
-from src.analytics import generate_hotspot_map, generate_temporal_forecast, generate_crime_distribution_chart, generate_time_distribution_chart
+from src.analytics import generate_hotspot_map, generate_temporal_forecast, generate_crime_distribution_chart, generate_time_distribution_chart, generate_temporal_forecast_baselines
 from src.advanced_intel import AdvancedIntelligenceEngine
 from src.predictive_mapping import PredictiveHotspotEngine
 from src.dossier_generator import create_pdf_dossier
+from src.data_schema import validate_dataset
+from src.semantic_search import SemanticSearchEngine
+from src.entity_linking import find_entity_links
+from src.pii_anonymizer import mask_pii
+from src.multilingual import detect_language, translate_to_english
+from src.explainability import explain_prediction
+from src.bias_audit import run_bias_audit
+from src.active_learning import enqueue_review, load_reviews
 
 st.set_page_config(page_title="CRIS Dashboard", page_icon="🕵️‍♂️", layout="wide")
 
@@ -31,11 +39,19 @@ with st.spinner("Loading 60k Synthetic Dataset..."):
 
 if df is not None:
     st.success(f"Successfully loaded dataset with {df.shape[0]:,} rows and {df.shape[1]} columns!")
+    validation_issues = validate_dataset(df)
+    with st.expander("Data Validation Summary"):
+        if validation_issues:
+            for issue in validation_issues:
+                st.warning(issue)
+        else:
+            st.info("No validation issues detected.")
     
     # Overview Tab
     tab1, tab2, tab3, tab4 = st.tabs(["Data Viewer", "Missing Values", "Advanced Analytics & Hotspots", "Intelligence Demo"])
     
     with tab1:
+        st.warning("Demo mode: This prototype uses synthetic data and is not for real-world operational use.")
         st.subheader("Raw Data Sample")
         view_df = df.head(100)
         # Remove the 'data source' column from the viewer if it exists
@@ -45,6 +61,7 @@ if df is not None:
         st.dataframe(view_df, use_container_width=True)
         
     with tab2:
+        st.warning("Demo mode: This prototype uses synthetic data and is not for real-world operational use.")
         st.subheader("Missing Values Count")
         missing_df = df.isnull().sum().reset_index()
         missing_df.columns = ["Column", "Missing Count"]
@@ -57,6 +74,7 @@ if df is not None:
             st.info("No missing values found in the dataset!")
             
     with tab3:
+        st.warning("Demo mode: This prototype uses synthetic data and is not for real-world operational use.")
         st.subheader("Advanced Analytics & Regional Forecasting")
         
         # UI Toggles
@@ -80,6 +98,17 @@ if df is not None:
                     st.plotly_chart(forecast_fig, use_container_width=True)
                 else:
                     st.error("Missing valid 'report_date' column. Cannot generate temporal trends.")
+            with st.expander("Baseline Forecasts (ARIMA / Prophet)"):
+                with st.spinner("Generating baseline forecasts..."):
+                    arima_fig, prophet_fig = generate_temporal_forecast_baselines(df, selected_crime, horizon=6)
+                    if arima_fig:
+                        st.plotly_chart(arima_fig, use_container_width=True)
+                    else:
+                        st.info("ARIMA baseline not available (insufficient data or model error).")
+                    if prophet_fig:
+                        st.plotly_chart(prophet_fig, use_container_width=True)
+                    else:
+                        st.info("Prophet baseline not available (insufficient data or model error).")
                     
         with map_col:
             st.markdown("#### 🗺️ Historic Hotspots")
@@ -117,6 +146,7 @@ if df is not None:
         
         # New Predictive ML Zone
         st.subheader("🤖 Future Resource Allocation Map (AI Random Forest)")
+        st.caption("Disclaimer: This is a probabilistic risk map based on historical patterns. It does not predict individual behavior or guarantee future events. Use for resource allocation only.")
         p_col1, p_col2 = st.columns([1, 3])
         
         with p_col1:
@@ -138,7 +168,7 @@ if df is not None:
             if st.session_state.get('rf_trained', False):
                 st.success("Model Trained Successfully!")
                 metrics = st.session_state['rf_engine'].metrics
-                st.metric("Model Operational Accuracy", f"{metrics['r2'] * 100:.1f}%")
+                st.metric("Operational Accuracy (±1 incident)", f"{metrics['operational_accuracy'] * 100:.1f}%")
                 st.caption(f"Mean Absolute Error: {metrics['mae']:.2f} incidents per grid")
                 
         with p_col2:
@@ -184,16 +214,36 @@ if df is not None:
             else:
                 st.info("👈 Click 'Generate ML Forecast' to train the AI and visualize tomorrow's threats.")
 
+        st.markdown("---")
+        st.markdown("#### ⚖️ Bias Audit (Scaffold)")
+        st.caption("This is a scaffold for group-level auditing. Use only with properly labeled real data.")
+        audit_cols = st.multiselect("Select sensitive columns to audit", options=list(df.columns))
+        if st.button("Run Bias Audit"):
+            audit_results = run_bias_audit(df, audit_cols)
+            if audit_results:
+                st.json(audit_results)
+            else:
+                st.info("No audit results. Ensure selected columns exist and target column is present.")
+
     with tab4:
+        st.warning("Demo mode: This prototype uses synthetic data and is not for real-world operational use.")
         st.subheader("Intelligence Engine (Baseline)")
         
         # Training Expander
         with st.expander("⚙️ Train Baseline Model (Run Once)"):
-            st.markdown("This will train a `TF-IDF + Logistic Regression` baseline on your 60k dataset.")
+            st.markdown("Trains a `TF-IDF + MLPClassifier` (demo) or a `TF-IDF + Logistic Regression` baseline.")
+            model_choice = st.selectbox(
+                "Select model",
+                ["MLP (demo)", "Logistic Regression (baseline)"]
+            )
+            sample_size = st.number_input("Sample size (set 0 for full data)", min_value=0, max_value=60000, value=1500, step=500)
             if st.button("Start Training"):
                 with st.spinner("Training baseline classifier... This may take a minute."):
                     try:
-                        accuracy, report = train_baseline_model(DATA_PATH)
+                        model_type = "logreg" if "Logistic" in model_choice else "mlp"
+                        sample_arg = None if sample_size == 0 else int(sample_size)
+                        accuracy, report = train_baseline_model(DATA_PATH, model_type=model_type, sample_size=sample_arg)
+                        st.session_state["model_type"] = model_type
                         st.success(f"Model trained successfully! Accuracy: {accuracy*100:.2f}%")
                         st.json(report)
                     except Exception as e:
@@ -204,21 +254,45 @@ if df is not None:
         
         sample_text = st.text_area("Incident Narrative", height=200, 
                                    placeholder="e.g. On Tuesday evening, John Doe broke into the warehouse on 5th Ave using a crowbar...")
+        st.caption("Policy: CRIS is not designed to predict who will commit a crime or justify arrests.")
+        policy_ack = st.checkbox("I acknowledge the no-arrest policy", value=False)
+        anonymize_input = st.checkbox("Anonymize PII before analysis", value=False)
+        auto_translate = st.checkbox("Auto-translate non-English text (HF API)", value=False)
                                    
         if st.button("Analyze with CRIS"):
+            if not policy_ack:
+                st.warning("Please acknowledge the no-arrest policy before analysis.")
+                st.stop()
             if not sample_text.strip():
                 st.warning("Please enter some text to analyze.")
             else:
+                analysis_text = mask_pii(sample_text) if anonymize_input else sample_text
+                detected_lang = detect_language(analysis_text)
+                if auto_translate and detected_lang not in ["en", "unknown"]:
+                    translated, err = translate_to_english(analysis_text)
+                    if err:
+                        st.warning(err)
+                    else:
+                        analysis_text = translated
+
                 # Initialize Advanced Engine
                 VECTORIZER_PATH = os.path.join("models", "baseline_vectorizer.pkl")
                 intel_engine = AdvancedIntelligenceEngine(DATA_PATH, VECTORIZER_PATH)
                 
                 colA, colB, colC = st.columns(3)
-                
+
+                use_zero_shot = st.checkbox("Use HF zero-shot classifier (requires HF_API_TOKEN)", value=False)
+                with st.spinner("Extracting entities (shared)..."):
+                    entities = extract_entities(analysis_text, use_hf=False)
+
                 with colA:
                     st.markdown("#### 🔍 Expected Crime")
                     with st.spinner("Classifying..."):
-                        prediction, prob = predict_crime_type(sample_text)
+                        if use_zero_shot:
+                            labels = list(df["crime_type"].dropna().unique()) if "crime_type" in df.columns else []
+                            prediction, prob = predict_zero_shot(analysis_text, labels)
+                        else:
+                            prediction, prob = predict_crime_type(analysis_text, model_type=st.session_state.get("model_type"))
                     if prediction:
                         st.success(f"**{prediction}**")
                         st.metric("Confidence", f"{prob:.1f}%")
@@ -228,7 +302,11 @@ if df is not None:
                 with colB:
                     st.markdown("#### ⚠️ Severity Triage")
                     with st.spinner("Analyzing distress..."):
-                        severity = intel_engine.calculate_severity_score(sample_text)
+                        severity = None
+                        if entities:
+                            severity = intel_engine.calculate_severity_from_ipc(entities)
+                        if severity is None:
+                            severity = intel_engine.calculate_severity_score(analysis_text)
                         
                     if severity >= 8:
                         st.error(f"CODE RED: {severity}/10")
@@ -240,8 +318,6 @@ if df is not None:
                         
                 with colC:
                     st.markdown("#### 🏷️ Entity Network")
-                    with st.spinner("Extracting..."):
-                        entities = extract_entities(sample_text)
                     
                     if entities:
                         for label, items in entities.items():
@@ -264,14 +340,67 @@ if df is not None:
                         
                 with bot_col2:
                     st.markdown("#### 📂 Modus Operandi Matches")
-                    with st.spinner("Scanning 60k database for similarity..."):
-                        matches = intel_engine.find_mo_similarity(sample_text)
+                    use_semantic = st.checkbox("Use semantic search (HF API)", value=False)
+                    use_chroma = st.checkbox("Use Chroma vector store", value=False)
+                    if use_semantic:
+                        if "semantic_engine" not in st.session_state:
+                            st.session_state["semantic_engine"] = SemanticSearchEngine()
+                        index_size = st.number_input("Semantic index sample size", min_value=200, max_value=10000, value=2000, step=500)
+                        if st.button("Build Semantic Index"):
+                            with st.spinner("Building semantic index via HF API..."):
+                                ok, msg = st.session_state["semantic_engine"].build_index(df, sample_size=int(index_size))
+                                if ok:
+                                    st.success(msg)
+                                else:
+                                    st.error(msg)
+                        if st.button("Build Chroma Index"):
+                            with st.spinner("Building Chroma index via HF API..."):
+                                ok, msg = st.session_state["semantic_engine"].build_chroma_index(df, sample_size=int(index_size))
+                                if ok:
+                                    st.success(msg)
+                                else:
+                                    st.error(msg)
+                        if st.button("Save Semantic Index"):
+                            ok, msg = st.session_state["semantic_engine"].save_index()
+                            if ok:
+                                st.success(msg)
+                            else:
+                                st.error(msg)
+                        if st.button("Load Semantic Index"):
+                            ok, msg = st.session_state["semantic_engine"].load_index()
+                            if ok:
+                                st.success(msg)
+                            else:
+                                st.error(msg)
+                    with st.spinner("Scanning database for similarity..."):
+                        if use_chroma and "semantic_engine" in st.session_state:
+                            matches, err = st.session_state["semantic_engine"].query_chroma(analysis_text)
+                            if err:
+                                matches = None
+                                st.error(err)
+                        elif use_semantic and "semantic_engine" in st.session_state and st.session_state["semantic_engine"].embeddings is not None:
+                            matches, err = st.session_state["semantic_engine"].query(analysis_text)
+                            if err:
+                                matches = None
+                                st.error(err)
+                        else:
+                            matches = intel_engine.find_mo_similarity(analysis_text)
                     
                     if matches:
                         for m in matches:
                             st.info(f"**{m['similarity']:.1f}% Match** | {m['crime']}\n\n*\"{m['snippet']}\"*")
                     else:
                         st.warning("No similar historical cases found.")
+
+                st.markdown("---")
+                st.markdown("#### 🔗 Cross-Case Entity Links")
+                with st.spinner("Linking cases by shared entities..."):
+                    linked = find_entity_links(df, entities, max_results=5, sample_size=5000)
+                if linked:
+                    for item in linked:
+                        st.info(f"**{item['hit_count']} shared entities** | {item['crime']}\n\n*\"{item['snippet']}\"*")
+                else:
+                    st.info("No linked cases found based on extracted entities.")
                         
                 st.markdown("---")
                 st.markdown("### 📥 Export Intelligence Dossier")
@@ -289,7 +418,7 @@ if df is not None:
                     
                 # Generate PDF Bytes
                 pdf_bytes = create_pdf_dossier(
-                    incident_text=sample_text,
+                    incident_text=analysis_text,
                     prediction=prediction,
                     confidence=prob,
                     severity=severity,
@@ -297,6 +426,31 @@ if df is not None:
                     matches=matches,
                     future_threat=future_threat
                 )
+
+                st.markdown("---")
+                st.markdown("#### 🧾 Explainability")
+                explain = explain_prediction(analysis_text, model_type=st.session_state.get("model_type", "mlp"))
+                if explain:
+                    st.write(explain)
+                else:
+                    st.info("Explainability not available (model not trained or LIME not installed).")
+
+                st.markdown("---")
+                st.markdown("#### ✅ Active Learning Review")
+                st.caption("Submit corrections to build a high-quality labeled dataset over time.")
+                corrected_label = st.text_input("Corrected label (optional)", value="")
+                reviewer = st.text_input("Reviewer ID (optional)", value="")
+                if st.button("Submit Review"):
+                    enqueue_review(analysis_text, prediction, prob, corrected_label or None, reviewer or None)
+                    st.success("Review saved to queue.")
+
+        st.markdown("---")
+        st.markdown("### 🗂️ Review Queue (Recent)")
+        recent = load_reviews(limit=20)
+        if recent:
+            st.json(recent)
+        else:
+            st.info("No reviews submitted yet.")
                 
                 st.download_button(
                     label="📄 Download Official PDF Report",

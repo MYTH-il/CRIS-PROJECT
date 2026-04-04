@@ -24,6 +24,28 @@ class AdvancedIntelligenceEngine:
             self.vectorizer = joblib.load(vectorizer_path)
             
         self.sia = SentimentIntensityAnalyzer()
+        self.ipc_severity = {
+            "302": 10,
+            "376": 10,
+            "364A": 10,
+            "307": 8,
+            "397": 8,
+            "394": 7,
+            "392": 7,
+            "326": 7,
+            "325": 6,
+            "324": 6,
+            "323": 5,
+            "420": 6,
+            "468": 6,
+            "471": 6,
+            "380": 5,
+            "381": 5,
+            "379": 4,
+            "411": 4,
+            "427": 4,
+            "447": 3,
+        }
 
     def calculate_severity_score(self, text):
         """
@@ -52,6 +74,22 @@ class AdvancedIntelligenceEngine:
                 
         # Cap at 10 and Floor at 1
         return max(1, min(10, round(severity)))
+
+    def calculate_severity_from_ipc(self, entities_dict):
+        """
+        IPC-based severity scoring. Falls back to None if no IPC sections found.
+        """
+        if not entities_dict or "IPC_SECTION" not in entities_dict:
+            return None
+        scores = []
+        for sec in entities_dict["IPC_SECTION"]:
+            sec_clean = str(sec).replace("IPC", "").strip()
+            score = self.ipc_severity.get(sec_clean)
+            if score:
+                scores.append(score)
+        if not scores:
+            return None
+        return max(scores)
 
     def find_mo_similarity(self, input_text, text_col='incident_description', top_n=3):
         """

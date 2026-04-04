@@ -1,0 +1,360 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+
+.section-title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin: 2rem 0 0.75rem;
+}
+.section-title:first-child { margin-top: 0.5rem; }
+
+.phase-grid { display: flex; flex-direction: column; gap: 8px; }
+
+.phase-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.phase-header:hover { background: var(--color-background-secondary); }
+.phase-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.badge-purple { background: #EEEDFE; color: #3C3489; }
+.badge-teal   { background: #E1F5EE; color: #0F6E56; }
+.badge-amber  { background: #FAEEDA; color: #633806; }
+.badge-coral  { background: #FAECE7; color: #4A1B0C; }
+.badge-blue   { background: #E6F1FB; color: #0C447C; }
+@media (prefers-color-scheme: dark) {
+  .badge-purple { background: #26215C; color: #CECBF6; }
+  .badge-teal   { background: #04342C; color: #9FE1CB; }
+  .badge-amber  { background: #412402; color: #FAC775; }
+  .badge-coral  { background: #4A1B0C; color: #F5C4B3; }
+  .badge-blue   { background: #042C53; color: #B5D4F4; }
+}
+.phase-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); flex: 1; }
+.phase-meta  { font-size: 12px; color: var(--color-text-tertiary); white-space: nowrap; }
+.chevron { font-size: 12px; color: var(--color-text-tertiary); transition: transform 0.2s; }
+.chevron.open { transform: rotate(90deg); }
+
+.phase-body {
+  display: none;
+  padding: 0 16px 16px;
+  border-top: 0.5px solid var(--color-border-tertiary);
+}
+.phase-body.open { display: block; }
+
+.task-list { list-style: none; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.task-item {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  padding: 6px 10px;
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-secondary);
+}
+.task-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 5px;
+}
+.dot-purple { background: #7F77DD; }
+.dot-teal   { background: #1D9E75; }
+.dot-amber  { background: #BA7517; }
+.dot-coral  { background: #D85A30; }
+.dot-blue   { background: #378ADD; }
+.dot-red    { background: #E24B4A; }
+
+.task-label { font-weight: 500; color: var(--color-text-primary); }
+.warn-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--border-radius-md);
+  border-left: 3px solid var(--color-border-danger);
+  background: var(--color-background-danger);
+  font-size: 12px;
+  color: var(--color-text-danger);
+  line-height: 1.5;
+}
+.info-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--border-radius-md);
+  border-left: 3px solid var(--color-border-info);
+  background: var(--color-background-info);
+  font-size: 12px;
+  color: var(--color-text-info);
+  line-height: 1.5;
+}
+
+/* Approach cards */
+.approach-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+@media (max-width: 560px) { .approach-grid { grid-template-columns: 1fr; } }
+.approach-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 14px;
+}
+.approach-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.approach-tag  { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; display: inline-block; margin-bottom: 10px; }
+.approach-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: 10px; }
+.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.pros, .cons { font-size: 11px; line-height: 1.5; }
+.pros-label { font-weight: 500; color: #1D9E75; font-size: 11px; margin-bottom: 3px; }
+.cons-label { font-weight: 500; color: #E24B4A; font-size: 11px; margin-bottom: 3px; }
+.pros p, .cons p { color: var(--color-text-secondary); }
+.recommend-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 20px;
+  background: var(--color-background-success); color: var(--color-text-success);
+  font-weight: 500; display: inline-block; margin-bottom: 8px;
+}
+
+.phase-sub { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+</style>
+
+<div style="padding: 1rem 0;">
+  <p class="section-title">Data strategy — tackle this first</p>
+
+  <div class="approach-grid">
+    <div class="approach-card">
+      <div class="recommend-badge">Recommended</div>
+      <div class="approach-name">Approach A — RTI + public judgment corpora</div>
+      <span class="approach-tag badge-teal">Low data needed</span>
+      <div class="approach-desc">File RTI requests for anonymized FIR summaries and pair them with Indian Kanoon + JUDIS judgments (public, FIR-like narrative style). Use NCRB tables for taxonomy grounding. This becomes your real-data backbone.</div>
+      <div class="pros-cons">
+        <div class="pros"><div class="pros-label">Pros</div><p>Legally obtained. Real distribution. FIR-style language. Highly defensible for research.</p></div>
+        <div class="cons"><div class="cons-label">Cons</div><p>RTI process is slow (30–60 days). Data may be redacted. Manual cleaning required.</p></div>
+      </div>
+    </div>
+    <div class="approach-card">
+      <div class="approach-name">Approach B — Rebuild synthetic generator (IPC-grounded)</div>
+      <span class="approach-tag badge-purple">Immediate</span>
+      <div class="approach-desc">Generate FIRs that reference real IPC sections, real Indian cities/districts, and genuine FIR linguistic patterns. This is the fastest way to dramatically raise synthetic realism.</div>
+      <div class="pros-cons">
+        <div class="pros"><div class="pros-label">Pros</div><p>Immediate. IPC-aligned. Realistic narratives. No legal/privacy risk.</p></div>
+        <div class="cons"><div class="cons-label">Cons</div><p>Still synthetic — cannot support real-world accuracy claims alone.</p></div>
+      </div>
+    </div>
+    <div class="approach-card">
+      <div class="approach-name">Approach C — Zero-shot with IndicBERT / XLM-R</div>
+      <span class="approach-tag badge-amber">Research angle</span>
+      <div class="approach-desc">Use Hugging Face Inference API for zero-shot classification/NER. This bypasses WDAC (no local DLLs) and gives a strong research baseline while real data is pending.</div>
+      <div class="pros-cons">
+        <div class="pros"><div class="pros-label">Pros</div><p>Works with zero labeled Indian data. Strong on multilingual. WDAC-safe.</p></div>
+        <div class="cons"><div class="cons-label">Cons</div><p>Latency + API cost. Lower ceiling than fine-tuned. On-prem is harder.</p></div>
+      </div>
+    </div>
+    <div class="approach-card">
+      <div class="approach-name">Approach D — Active learning loop</div>
+      <span class="approach-tag badge-coral">Long-term</span>
+      <div class="approach-desc">Deploy the system with human-in-the-loop annotation. As officers interact, confident model predictions are auto-labeled; uncertain ones get flagged for expert review. Model improves continuously with minimal labeled data.</div>
+      <div class="pros-cons">
+        <div class="pros"><div class="pros-label">Pros</div><p>Self-improving. Adapts to local patterns. Data grows with usage. Most production-realistic.</p></div>
+        <div class="cons"><div class="cons-label">Cons</div><p>Needs a live deployment to work. Cold start problem. Requires annotation UI + review workflow.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box" style="margin-top:12px;">
+    Stack all four approaches. Start with B now to fix synthetic realism. File RTI requests and collect judgments (A) in parallel. Use C (HF Inference API) as your strong baseline while real data arrives. Add D once a prototype is stable.
+  </div>
+
+  <p class="section-title" style="margin-top: 2rem;">End-to-end action plan</p>
+  <div class="phase-grid">
+
+    <!-- Phase 0 -->
+    <div class="phase-card">
+      <div class="phase-header" onclick="toggle(this)">
+        <span class="phase-badge badge-red" style="background:#FCEBEB;color:#A32D2D;">🚨 Fix now</span>
+        <span class="phase-title">Phase 0 — Integrity & cleanup</span>
+        <span class="phase-meta">Week 1</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="phase-body">
+        <div class="warn-box">Highest priority: remove fabricated metric code before any demo or publication. These lines in classification.py and predictive_mapping.py invalidate the entire project if left in.</div>
+        <ul class="task-list">
+          <li class="task-item"><span class="task-dot dot-red"></span><div><span class="task-label">Remove metric inflation</span> — delete the accuracy clamping code in classification.py lines ~55–57 and predict_crime_type confidence scaling. Report true numbers.</div></li>
+          <li class="task-item"><span class="task-dot dot-red"></span><div><span class="task-label">Fix requirements.txt</span> — remove spaCy, transformers, geopandas (they crash under WDAC). Add only what actually runs.</div></li>
+          <li class="task-item"><span class="task-dot dot-red"></span><div><span class="task-label">Add "Demo / Synthetic Data" banner</span> to every tab in Streamlit so viewers know the context immediately.</div></li>
+          <li class="task-item"><span class="task-dot dot-red"></span><div><span class="task-label">Rename the R² metric display</span> — it's a ±1 tolerance score, not R². Relabel accurately in the UI.</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Phase 1 -->
+    <div class="phase-card">
+      <div class="phase-header" onclick="toggle(this)">
+        <span class="phase-badge badge-purple">Phase 1</span>
+        <span class="phase-title">Data pipeline & schema</span>
+        <span class="phase-meta">Weeks 1–3</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="phase-body">
+        <div class="info-box">Rust Target (low-risk, high-impact): build a small ingestion + validation CLI that reads CSV/JSON, enforces schema, and outputs clean parquet/CSV for Python. This keeps the system cohesive: Rust only handles I/O and validation, Python stays the orchestration layer.</div>
+        <div class="phase-sub">Real data acquisition</div>
+        <ul class="task-list">
+          <li class="task-item"><span class="task-dot dot-purple"></span><div><span class="task-label">File RTI requests</span> — target State Crime Record Bureaus (SCRB) for anonymized FIR data. Aim for UP, Maharashtra, Tamil Nadu (largest datasets). Use RTI Online portal.</div></li>
+          <li class="task-item"><span class="task-dot dot-purple"></span><div><span class="task-label">NCRB open data</span> — download and parse all publicly available NCRB crime statistics tables (2018–2023). They have district-level breakdowns by IPC section.</div></li>
+          <li class="task-item"><span class="task-dot dot-purple"></span><div><span class="task-label">Court judgment corpora</span> — Indian Kanoon and JUDIS have machine-readable judgments. These contain FIR-like narratives and are publicly accessible.</div></li>
+        </ul>
+        <div class="phase-sub">LLM-augmented synthetic upgrade</div>
+        <ul class="task-list">
+          <li class="task-item"><span class="task-dot dot-purple"></span><div><span class="task-label">Rebuild generate_crime_dataset.py</span> — rewrite to use GPT-4/Claude API. Ground each generated FIR in a real IPC section, real Indian city/district, real crime category from NCRB taxonomy. Add Hindi field variants.</div></li>
+          <li class="task-item"><span class="task-dot dot-purple"></span><div><span class="task-label">Schema validation layer</span> — add a Pydantic model or pandera schema that enforces column types, lat/lon bounds for India, valid IPC section codes, date ranges. Fail loudly at load time.</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase-card">
+      <div class="phase-header" onclick="toggle(this)">
+        <span class="phase-badge badge-teal">Phase 2</span>
+        <span class="phase-title">NLP pipeline upgrade</span>
+        <span class="phase-meta">Weeks 2–5</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-sub">Classification</div>
+        <ul class="task-list">
+          <li class="task-item"><span class="task-dot dot-teal"></span><div><span class="task-label">Add Logistic Regression baseline</span> — fast, trains on all 60k rows in seconds, gives honest metrics. This is your research baseline. MLP is the improved model. Compare both properly.</div></li>
+          <li class="task-item"><span class="task-dot dot-teal"></span><div><span class="task-label">Zero-shot with IndicBERT or XLM-R</span> — use Hugging Face Inference API (no local install, no WDAC problem) to call a multilingual model in zero-shot mode. This becomes your "strong model" comparison in the paper.</div></li>
+          <li class="task-item"><span class="task-dot dot-teal"></span><div><span class="task-label">Proper train/val/test split</span> — 70/15/15. Fixed seed. Report F1, precision, recall, confusion matrix. Never touch the test set during development.</div></li>
+        </ul>
+        <div class="phase-sub">NER upgrade (WDAC-safe)</div>
+        <ul class="task-list">
+          <li class="task-item"><span class="task-dot dot-teal"></span><div><span class="task-label">Rule-based + regex NER</span> — build a custom extractor for: IPC sections (regex), FIR numbers, Indian phone numbers, vehicle plates (state code + format), police station names (lookup table), weapon keywords (curated list).</div></li>
+          <li class="task-item"><span class="task-dot dot-teal"></span><div><span class="task-label">Hugging Face Inference API for NER</span> — call a hosted token-classification model for PERSON, ORG, LOC. No local install. Falls back to regex if API is unavailable.</div></li>
+        </ul>
+        <div class="phase-sub">Severity scoring improvement</div>
+        <ul class="task-list">
+          <li class="task-item"><span class="task-dot dot-teal"></span><div><span class="task-label">IPC section severity map</span> — create a lookup table mapping IPC sections to severity tiers (cognizable/non-cognizable, bailable/non-bailable, punishment quantum). This is domain-accurate and requires no ML.</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase-card">
+      <div class="phase-header" onclick="toggle(this)">
+        <span class="phase-badge badge-amber">Phase 3</span>
+        <span class="phase-title">Case linking & semantic search</span>
+        <span class="phase-meta">Weeks 4–6</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="phase-body">
+        <ul class="task-list">
+          <li class="task-item"><span class="task-dot dot-amber"></span><div><span class="task-label">Sentence-transformers via API</span> — replace TF-IDF cosine similarity with embedding-based similarity using Hugging Face Inference API (paraphrase-multilingual-MiniLM). Same WDAC-safe pattern.</div></li>
+          <li class="task-item"><span class="task-dot dot-amber"></span><div><span class="task-label">ChromaDB or FAISS for vector storage</span> — ChromaDB is pure Python (WDAC-safe). Pre-compute embeddings for all 60k reports, store in ChromaDB, query at runtime. This makes MO matching actually semantic.</div></li>
+          <li class="task-item"><span class="task-dot dot-amber"></span><div><span class="task-label">Case clustering with BERTopic</span> — use BERTopic (API-based topic extraction) to cluster similar but uncategorized crimes. Surface clusters in the UI as "Emerging Pattern Alerts."</div></li>
+          <li class="task-item"><span class="task-dot dot-amber"></span><div><span class="task-label">Cross-case entity linking</span> — if the same suspect name or vehicle plate appears in multiple cases, link them. Build a basic coreference graph using entity string matching + fuzzy match (rapidfuzz — pure Python).</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase-card">
+      <div class="phase-header" onclick="toggle(this)">
+        <span class="phase-badge badge-coral">Phase 4</span>
+        <span class="phase-title">Geospatial & predictive improvements</span>
+        <span class="phase-meta">Weeks 5–7</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="phase-body">
+        <ul class="task-list">
+          <li class="task-item"><span class="task-dot dot-coral"></span><div><span class="task-label">Switch to H3 spatial binning</span> — replace coordinate rounding with Uber's H3 library (pure Python wheels available). Consistent hexagonal grid, more stable hotspot boundaries, better at Indian geography.</div></li>
+          <li class="task-item"><span class="task-dot dot-coral"></span><div><span class="task-label">Add Prophet/ARIMA as temporal baselines</span> — Prophet is pure Python (Facebook). Run it alongside RandomForest. Show both in the UI. Lets you quantify what the spatial dimension adds. Required for research paper comparison table.</div></li>
+          <li class="task-item"><span class="task-dot dot-coral"></span><div><span class="task-label">India-specific geodata</span> — integrate district/taluka boundaries from the Survey of India open data. Replace generic lat/lon with district-level aggregations. Map crimes to police station jurisdictions.</div></li>
+          <li class="task-item"><span class="task-dot dot-coral"></span><div><span class="task-label">Clearly label predictions as probabilistic</span> — add UI copy: "This is a statistical likelihood map based on historical patterns, not a guarantee. For resource allocation guidance only." Required for ethics compliance.</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Phase 5 -->
+    <div class="phase-card">
+      <div class="phase-header" onclick="toggle(this)">
+        <span class="phase-badge badge-blue">Phase 5</span>
+        <span class="phase-title">Backend, API & production architecture</span>
+        <span class="phase-meta">Weeks 7–10</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="phase-body">
+        <ul class="task-list">
+          <li class="task-item"><span class="task-dot dot-blue"></span><div><span class="task-label">FastAPI backend</span> — decouple ML logic from Streamlit. Build REST endpoints: /classify, /extract-entities, /similar-cases, /forecast. Streamlit becomes a thin frontend client.</div></li>
+          <li class="task-item"><span class="task-dot dot-blue"></span><div><span class="task-label">PostgreSQL for structured data</span> — replace CSV loading with a proper DB. Cases, entities, predictions, audit log all in separate tables. Use SQLAlchemy ORM.</div></li>
+          <li class="task-item"><span class="task-dot dot-blue"></span><div><span class="task-label">ChromaDB / pgvector for embeddings</span> — production vector store with persistent storage, indexing, and filtered search (e.g. "find similar robbery cases in Maharashtra only").</div></li>
+          <li class="task-item"><span class="task-dot dot-blue"></span><div><span class="task-label">Authentication & access control</span> — JWT-based auth. Role-based access: Investigator, Analyst, Admin. All queries logged with user ID for audit trail.</div></li>
+          <li class="task-item"><span class="task-dot dot-blue"></span><div><span class="task-label">Docker + CI/CD</span> — Dockerize the FastAPI + Streamlit stack. GitHub Actions pipeline: lint → test → build image → deploy.</div></li>
+          <li class="task-item"><span class="task-dot dot-blue"></span><div><span class="task-label">Frontend transition plan</span> — keep Streamlit as the interim UI for research demos. In parallel, build the production frontend (React or similar) against the same API. This avoids blocking model work on UI.</div></li>
+          <li class="task-item"><span class="task-dot dot-blue"></span><div><span class="task-label">Rust accelerators (targeted)</span> — add small Rust services only where they pay off: ingestion/validation, embedding search microservice, or API gateway. Keep Python as the main orchestration layer.</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Phase 6 -->
+    <div class="phase-card">
+      <div class="phase-header" onclick="toggle(this)">
+        <span class="phase-badge badge-purple">Phase 6</span>
+        <span class="phase-title">Ethics, governance & evaluation</span>
+        <span class="phase-meta">Weeks 8–11</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="phase-body">
+        <ul class="task-list">
+          <li class="task-item"><span class="task-dot dot-purple"></span><div><span class="task-label">Bias audit</span> — evaluate model performance broken down by religion, caste indicators, and geography. If accuracy varies significantly across groups, document it and apply calibration. Required for law enforcement applications.</div></li>
+          <li class="task-item"><span class="task-dot dot-purple"></span><div><span class="task-label">PII anonymization pipeline</span> — strip or mask: names, Aadhaar numbers, phone numbers, addresses before data enters any model. Use presidio (Microsoft, pure Python) or a custom regex masker.</div></li>
+          <li class="task-item"><span class="task-dot dot-purple"></span><div><span class="task-label">No-arrest-prediction hard block</span> — add a UI-level and API-level guardrail that prevents the system from being used to predict who will commit a crime. Only patterns and resource allocation.</div></li>
+          <li class="task-item"><span class="task-dot dot-purple"></span><div><span class="task-label">Research evaluation pipeline</span> — implement proper held-out test set evaluation. Report F1 by class, confusion matrix, NER span-level F1, hotspot prediction MAE. Separate synthetic vs real results clearly.</div></li>
+          <li class="task-item"><span class="task-dot dot-purple"></span><div><span class="task-label">Explainability layer</span> — add LIME or SHAP (both scikit-compatible) to explain why the model classified a report as a specific crime type. Required for investigator trust and legal defensibility.</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Phase 7 -->
+    <div class="phase-card">
+      <div class="phase-header" onclick="toggle(this)">
+        <span class="phase-badge badge-teal">Phase 7</span>
+        <span class="phase-title">Research paper & multilingual</span>
+        <span class="phase-meta">Weeks 10–14</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="phase-body">
+        <ul class="task-list">
+          <li class="task-item"><span class="task-dot dot-teal"></span><div><span class="task-label">Hindi + regional language support</span> — add IndicBERT or AI4Bharat's IndicNLP pipeline. Indian FIRs are often written in Hindi, Marathi, Tamil. The system must handle transliteration and code-mixing.</div></li>
+          <li class="task-item"><span class="task-dot dot-teal"></span><div><span class="task-label">Paper structure</span> — Introduction → Related Work (NLP in Indian law enforcement) → Dataset (synthetic + RTI, clearly separated) → System Architecture → Experiments (model comparisons, ablation study) → Ethics → Conclusion.</div></li>
+          <li class="task-item"><span class="task-dot dot-teal"></span><div><span class="task-label">Target venues</span> — ACL Findings, EMNLP, IEEE ISI 2026, or FIRE (Forum for Information Retrieval Evaluation — specifically covers Indian language NLP and is a strong fit).</div></li>
+          <li class="task-item"><span class="task-dot dot-teal"></span><div><span class="task-label">Active learning annotation UI</span> — build a simple review interface where a domain expert can confirm or correct model predictions. Confirmed predictions become training data. Model improves with each review cycle.</div></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggle(header) {
+  const body = header.nextElementSibling;
+  const chev = header.querySelector('.chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+</script>
